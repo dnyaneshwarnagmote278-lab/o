@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GestureLED | Hand Gesture LED Control</title>
+<style>
+:root{
+  --bg:#f4f7fb; --card:#fff; --text:#172033; --muted:#667085;
+  --primary:#2563eb; --primary2:#1d4ed8; --border:#e5e7eb;
+  --green:#16a34a; --red:#dc2626; --yellow:#d97706; --shadow:0 10px 30px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav{max-width:1200px;margin:auto;padding:15px 22px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:22px;font-weight:800;color:var(--primary)}
+nav a{margin-left:20px;text-decoration:none;color:var(--text);font-weight:600;font-size:14px}
+nav a:hover{color:var(--primary)}
+.container{max-width:1200px;margin:auto;padding:28px 22px}
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:22px;align-items:stretch}
+.hero-card,.card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+.hero-card{padding:35px}
+.badge{display:inline-block;background:#dbeafe;color:#1d4ed8;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:800}
+h1{font-size:44px;line-height:1.05;margin:17px 0 12px}
+h2{margin-top:0}
+p{color:var(--muted);line-height:1.65}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--primary);color:#fff}
+.btn:hover{background:var(--primary2)}
+.btn.secondary{background:#eef2ff;color:#3730a3}
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:25px}
+.status{padding:18px;border-radius:14px;background:#f8fafc;border:1px solid var(--border)}
+.status strong{display:block;margin-bottom:5px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:6px}
+.dot.off{background:var(--red)}
+.camera{min-height:350px;background:#0f172a;border-radius:18px;color:#cbd5e1;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+.camera-box{width:100%;border:1px dashed #64748b;border-radius:14px;padding:65px 20px}
+.section{margin-top:28px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.card{padding:24px}
+.led-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.led{padding:20px 10px;text-align:center;border:1px solid var(--border);border-radius:14px;background:#f8fafc}
+.bulb{width:34px;height:34px;border-radius:50%;margin:0 auto 10px;background:#cbd5e1;box-shadow:inset 0 0 0 2px #94a3b8}
+.led.on .bulb{background:#22c55e;box-shadow:0 0 20px #22c55e}
+.led.on{border-color:#86efac;background:#f0fdf4}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.mapping{width:100%;border-collapse:collapse}
+.mapping th,.mapping td{padding:13px;border-bottom:1px solid var(--border);text-align:left}
+.mapping th{background:#f8fafc}
+.code{background:#0b1220;color:#dbeafe;border-radius:12px;padding:18px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.6}
+.connection{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.component{padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+.history{max-height:230px;overflow:auto}
+.history-row{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+footer{text-align:center;padding:35px;color:var(--muted)}
+@media(max-width:800px){
+ .hero,.grid,.connection{grid-template-columns:1fr}
+ h1{font-size:36px}.status-grid{grid-template-columns:1fr}
+ .led-grid{grid-template-columns:repeat(2,1fr)}
+ nav a{margin-left:8px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">⚡ GestureLED</div>
+    <nav>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#connection">Connection</a>
+      <a href="#how">How It Works</a>
+      <a href="#components">Components</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container" id="dashboard">
+
+<section class="hero">
+  <div class="hero-card">
+    <span class="badge">ARDUINO + COMPUTER VISION</span>
+    <h1>Hand Gesture<br>LED Control</h1>
+    <p>Control five physical LEDs using the number of fingers detected by a webcam. Python detects the gesture and sends the finger count to an Arduino UNO through USB serial communication.</p>
+    <div class="status-grid">
+      <div class="status"><strong><span class="dot"></span>Arduino</strong>Ready</div>
+      <div class="status"><strong><span class="dot"></span>Serial</strong>USB Connected</div>
+      <div class="status"><strong><span class="dot"></span>Camera</strong>Waiting for Python</div>
+    </div>
+  </div>
+  <div class="camera">
+    <div class="camera-box">
+      <div style="font-size:52px">📷</div>
+      <h2>Live Camera Area</h2>
+      <p style="color:#94a3b8">Connect the Python/OpenCV hand detector to display the live camera feed here.</p>
+      <button class="btn" onclick="simulate(1)">Test 1 Finger</button>
+    </div>
+  </div>
+</section>
+
+<section class="section card" id="serialConnection">
+  <h2>🔌 Real Arduino Serial Connection</h2>
+  <p>
+    Connect your Arduino UNO directly to this website through the browser's
+    Web Serial API. Use USB, then select the Arduino port when prompted.
+  </p>
+
+  <div class="status-grid">
+    <div class="status">
+      <strong>Arduino</strong>
+      <span id="serialStatus"><span class="dot off"></span>Disconnected</span>
+    </div>
+    <div class="status">
+      <strong>Port</strong>
+      <span id="portStatus">Not selected</span>
+    </div>
+    <div class="status">
+      <strong>Baud Rate</strong>
+      <select id="baudRate" style="padding:8px;border:1px solid var(--border);border-radius:8px">
+        <option value="9600" selected>9600</option>
+        <option value="115200">115200</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="connectBtn" onclick="connectArduino()">🔌 Connect Arduino</button>
+    <button class="btn secondary" id="disconnectBtn" onclick="disconnectArduino()" disabled>Disconnect</button>
+  </div>
+
+  <div id="serialMessage" style="margin-top:15px;padding:12px;border-radius:10px;background:#f8fafc;border:1px solid var(--border)">
+    Ready. Connect your Arduino UNO using USB.
+  </div>
+
+  <div class="code" style="margin-top:18px">
+    USB → Arduino UNO → Browser Web Serial → D2/D3/D4/D5/D6 → 5 LEDs
+  </div>
+</section>
+
+<section class="section grid">
+  <div class="card">
+    <h2>Current Gesture</h2>
+    <div id="gesture" style="font-size:38px;font-weight:800;color:var(--primary)">0 Fingers</div>
+    <p id="action">All LEDs OFF</p>
+    <div class="controls">
+      <button class="btn secondary" onclick="simulate(0)">0</button>
+      <button class="btn" onclick="simulate(1)">1</button>
+      <button class="btn" onclick="simulate(2)">2</button>
+      <button class="btn" onclick="simulate(3)">3</button>
+      <button class="btn" onclick="simulate(4)">4</button>
+      <button class="btn" onclick="simulate(5)">5</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>LED Status</h2>
+    <div class="led-grid" id="ledGrid">
+      <div class="led"><div class="bulb"></div><b>LED 1</b><br><small>OFF</small></div>
+      <div class="led"><div class="bulb"></div><b>LED 2</b><br><small>OFF</small></div>
+      <div class="led"><div class="bulb"></div><b>LED 3</b><br><small>OFF</small></div>
+      <div class="led"><div class="bulb"></div><b>LED 4</b><br><small>OFF</small></div>
+      <div class="led"><div class="bulb"></div><b>LED 5</b><br><small>OFF</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="section card" id="connection">
+<h2>🔌 Arduino UNO Connection</h2>
+<p>Use one 270 Ω resistor for each LED. Power the Arduino from the laptop USB cable. Connect Arduino GND to the breadboard negative rail.</p>
+<table class="mapping">
+<tr><th>Arduino UNO</th><th>Connection</th><th>Purpose</th></tr>
+<tr><td>D2</td><td>270 Ω → LED 1 (+)</td><td>LED 1</td></tr>
+<tr><td>D3</td><td>270 Ω → LED 2 (+)</td><td>LED 2</td></tr>
+<tr><td>D4</td><td>270 Ω → LED 3 (+)</td><td>LED 3</td></tr>
+<tr><td>D5</td><td>270 Ω → LED 4 (+)</td><td>LED 4</td></tr>
+<tr><td>D6</td><td>270 Ω → LED 5 (+)</td><td>LED 5</td></tr>
+<tr><td>GND</td><td>Breadboard − rail</td><td>Common ground</td></tr>
+<tr><td>USB</td><td>Laptop → Arduino</td><td>Power + Serial</td></tr>
+</table>
+<div class="code" style="margin-top:18px">
+Laptop Webcam → Python + MediaPipe → Finger Count → USB Serial → Arduino UNO → D2/D3/D4/D5/D6 → 5 LEDs
+</div>
+</section>
+
+<section class="section grid" id="how">
+<div class="card">
+<h2>🖐️ Gesture Mapping</h2>
+<table class="mapping">
+<tr><th>Gesture</th><th>Arduino Output</th></tr>
+<tr><td>✊ 0 fingers</td><td>All OFF</td></tr>
+<tr><td>☝️ 1 finger</td><td>LED 1 ON</td></tr>
+<tr><td>✌️ 2 fingers</td><td>LED 1 + 2 ON</td></tr>
+<tr><td>3 fingers</td><td>LED 1–3 ON</td></tr>
+<tr><td>4 fingers</td><td>LED 1–4 ON</td></tr>
+<tr><td>🖐️ 5 fingers</td><td>All 5 ON</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>⚙️ How It Works</h2>
+<p><b>1.</b> Webcam captures the hand.</p>
+<p><b>2.</b> Python/MediaPipe identifies the hand and counts fingers.</p>
+<p><b>3.</b> Python sends a number from 0 to 5 through USB serial.</p>
+<p><b>4.</b> Arduino receives the number.</p>
+<p><b>5.</b> Arduino switches the required LEDs through D2–D6.</p>
+</div>
+</section>
+
+<section class="section grid" id="components">
+<div class="card">
+<h2>🧰 Components</h2>
+<div class="component">Arduino UNO × 1</div>
+<div class="component">LED × 5</div>
+<div class="component">270 Ω resistor × 5</div>
+<div class="component">Breadboard × 1</div>
+<div class="component">Jumper wires</div>
+<div class="component">USB cable</div>
+<div class="component">Laptop/PC webcam</div>
+</div>
+
+<div class="card">
+<h2>📋 Activity History</h2>
+<div class="history" id="history">
+<div class="history-row">System ready — waiting for gesture.</div>
+</div>
+</div>
+</section>
+
+<section class="section card">
+<h2>💡 Manual LED Test</h2>
+<p>These buttons only demonstrate the website interface. Actual Arduino control requires your Python serial program.</p>
+<div class="controls">
+<button class="btn" onclick="simulate(0)">ALL OFF</button>
+<button class="btn" onclick="simulate(1)">LED 1</button>
+<button class="btn" onclick="simulate(2)">LED 1–2</button>
+<button class="btn" onclick="simulate(3)">LED 1–3</button>
+<button class="btn" onclick="simulate(4)">LED 1–4</button>
+<button class="btn" onclick="simulate(5)">ALL 5</button>
+</div>
+</section>
+
+</main>
+
+<footer>
+GestureLED — Hand Gesture Controlled 5-LED System<br>
+Arduino UNO • Python • OpenCV/MediaPipe
+</footer>
+
+<script>
+let serialPort = null;
+let serialWriter = null;
+let serialReader = null;
+let keepReading = false;
+
+function setSerialUI(connected, message) {
+  const status = document.getElementById('serialStatus');
+  const connectBtn = document.getElementById('connectBtn');
+  const disconnectBtn = document.getElementById('disconnectBtn');
+  const msg = document.getElementById('serialMessage');
+
+  status.innerHTML = connected
+    ? '<span class="dot"></span>Connected'
+    : '<span class="dot off"></span>Disconnected';
+
+  connectBtn.disabled = connected;
+  disconnectBtn.disabled = !connected;
+  msg.textContent = message;
+}
+
+function logHistory(text) {
+  const history = document.getElementById('history');
+  const row = document.createElement('div');
+  row.className = 'history-row';
+  row.textContent = new Date().toLocaleTimeString() + ' → ' + text;
+  history.prepend(row);
+}
+
+async function connectArduino() {
+  if (!('serial' in navigator)) {
+    setSerialUI(false, 'Web Serial is not supported in this browser. Use Google Chrome or Microsoft Edge on HTTPS/localhost.');
+    return;
+  }
+
+  try {
+    serialPort = await navigator.serial.requestPort();
+
+    const baud = Number(document.getElementById('baudRate').value);
+    await serialPort.open({ baudRate: baud });
+
+    serialWriter = serialPort.writable.getWriter();
+
+    const info = serialPort.getInfo();
+    let portText = 'USB Serial';
+    if (info.usbVendorId) {
+      portText += ' • VID 0x' + info.usbVendorId.toString(16).toUpperCase();
+    }
+    if (info.usbProductId) {
+      portText += ' • PID 0x' + info.usbProductId.toString(16).toUpperCase();
+    }
+    document.getElementById('portStatus').textContent = portText;
+
+    setSerialUI(true, 'Arduino connected successfully. You can now control the physical LEDs.');
+
+    // Give the Arduino time to reset after opening the serial port.
+    await new Promise(resolve => setTimeout(resolve, 1800));
+
+    logHistory('Arduino connected at ' + baud + ' baud');
+    startSerialReader();
+
+  } catch (error) {
+    console.error(error);
+    setSerialUI(false, 'Connection cancelled or failed: ' + error.message);
+    document.getElementById('portStatus').textContent = 'Not selected';
+  }
+}
+
+async function startSerialReader() {
+  if (!serialPort || !serialPort.readable || keepReading) return;
+
+  keepReading = true;
+  serialReader = serialPort.readable.getReader();
+  const decoder = new TextDecoder();
+
+  try {
+    while (keepReading) {
+      const { value, done } = await serialReader.read();
+      if (done) break;
+      if (value) {
+        const text = decoder.decode(value);
+        console.log('Arduino:', text);
+      }
+    }
+  } catch (error) {
+    if (keepReading) console.error('Serial read error:', error);
+  } finally {
+    try { serialReader.releaseLock(); } catch(e) {}
+    serialReader = null;
+  }
+}
+
+async function disconnectArduino() {
+  keepReading = false;
+
+  try {
+    if (serialReader) {
+      await serialReader.cancel();
+    }
+  } catch(e) {}
+
+  try {
+    if (serialWriter) {
+      serialWriter.releaseLock();
+    }
+  } catch(e) {}
+
+  serialWriter = null;
+
+  try {
+    if (serialPort) {
+      await serialPort.close();
+    }
+  } catch(e) {}
+
+  serialPort = null;
+  document.getElementById('portStatus').textContent = 'Not selected';
+  setSerialUI(false, 'Arduino disconnected.');
+  logHistory('Arduino disconnected');
+}
+
+async function sendToArduino(command) {
+  if (!serialWriter) {
+    setSerialUI(false, 'Arduino is not connected. Click "Connect Arduino" first.');
+    return false;
+  }
+
+  try {
+    const data = new TextEncoder().encode(String(command));
+    await serialWriter.write(data);
+    return true;
+  } catch (error) {
+    console.error(error);
+    setSerialUI(false, 'Could not send command: ' + error.message);
+    return false;
+  }
+}
+
+async function simulate(n) {
+  // Update website display
+  const leds = document.querySelectorAll('.led');
+  leds.forEach((el, i) => {
+    const on = i < n;
+    el.classList.toggle('on', on);
+    el.querySelector('small').textContent = on ? 'ON' : 'OFF';
+  });
+
+  document.getElementById('gesture').textContent =
+    n + (n === 1 ? ' Finger' : ' Fingers');
+
+  document.getElementById('action').textContent =
+    n === 0 ? 'All LEDs OFF' :
+    n === 5 ? 'All 5 LEDs ON' :
+    'LED 1 to LED ' + n + ' ON';
+
+  // Send the same number to the physical Arduino
+  const sent = await sendToArduino(n);
+
+  const commandText =
+    n === 0 ? 'All LEDs OFF' :
+    n === 5 ? 'All LEDs ON' :
+    'LED 1–' + n + ' ON';
+
+  logHistory(
+    n + ' finger' + (n === 1 ? '' : 's') +
+    ' → ' + commandText +
+    (sent ? ' → SENT TO ARDUINO' : ' → WEBSITE ONLY')
+  );
+}
+
+// Automatically update the website if the user disconnects the device.
+if ('serial' in navigator) {
+  navigator.serial.addEventListener('disconnect', async (event) => {
+    if (serialPort === event.target) {
+      keepReading = false;
+      serialWriter = null;
+      serialPort = null;
+      document.getElementById('portStatus').textContent = 'Not selected';
+      setSerialUI(false, 'Arduino was disconnected.');
+      logHistory('Arduino disconnected');
+    }
+  });
+}
+</script>
+</body>
+</html>
